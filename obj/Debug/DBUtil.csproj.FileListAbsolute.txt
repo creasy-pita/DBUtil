@@ -1,8 +1,0 @@
-E:\work\myproject\dotnet\dot\DBUtil\bin\Debug\DBUtil.exe.config
-E:\work\myproject\dotnet\dot\DBUtil\bin\Debug\DBUtil.exe
-E:\work\myproject\dotnet\dot\DBUtil\bin\Debug\DBUtil.pdb
-E:\work\myproject\dotnet\dot\DBUtil\obj\Debug\DBUtil.csprojResolveAssemblyReference.cache
-E:\work\myproject\dotnet\dot\DBUtil\obj\Debug\DBUtil.Properties.Resources.resources
-E:\work\myproject\dotnet\dot\DBUtil\obj\Debug\DBUtil.csproj.GenerateResource.Cache
-E:\work\myproject\dotnet\dot\DBUtil\obj\Debug\DBUtil.exe
-E:\work\myproject\dotnet\dot\DBUtil\obj\Debug\DBUtil.pdb
