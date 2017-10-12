@@ -51,8 +51,6 @@ namespace DBUtils
 
         public void Open()
         {
-            if (this.conn == null)
-                this.conn = new OracleConnection(ConnectionStr);
             if (this.conn.State != ConnectionState.Open)
             { 
                 this.conn.Open();
@@ -121,12 +119,54 @@ namespace DBUtils
 
         public int ExecuteSql(string sql, System.Data.IDataParameter[] paramArr)
         {
-            throw new NotImplementedException();
+            try
+            {
+                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                Open();
+                comm.Parameters.AddRange(paramArr);
+                return comm.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
         }
 
         public int ExecuteSql(string[] sqlArr)
         {
-            throw new NotImplementedException();
+            try
+            {
+                OracleCommand comm = new OracleCommand();
+                comm.Connection = (OracleConnection)this.conn;
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                Open();
+                int r = -1;
+                foreach (string sql in sqlArr)
+                {
+                    comm.CommandText = sql;
+                    r = comm.ExecuteNonQuery();
+                }
+                return r;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
         }
 
         public int ExecuteSql(string[] sqlArr, System.Data.IDataParameter[] paramArr)
@@ -138,9 +178,10 @@ namespace DBUtils
         {
             try
             {
-                
+                OracleCommand comm = new OracleCommand(sql);
                 Open();
-                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
+                comm.Connection = (OracleConnection)this.conn;
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
                 return comm.ExecuteScalar();
             }
             catch (Exception e)
@@ -162,23 +203,33 @@ namespace DBUtils
         {
             try
             {
-                string insertSql = "insert into {0} ({1}) values ({2}) ";
+                //DataTable dt = GetDataTable(string.Format(" select DATA_TYPE,COLUMN_NAME from user_tab_cols where table_name='{0}'", tableName.ToUpper()));
+                //Hashtable ht_pre = new Hashtable();
+                //if (dt.Rows.Count > 0)
+                //{
+                //    for (int i = 0; i < dt.Rows.Count; i++)
+                //    {
+                //        if (dt.Rows[i]["DATA_TYPE"].ToString().ToUpper() == "DATE")
+                //        {
+                //            ht_pre.Add(dt.Rows[i]["COLUMN_NAME"].ToString(), dt.Rows[i]["DATA_TYPE"].ToString());
+                //        }
+                //    }
+                //}
                 string insertTableOption = "";
                 string insertTableValues = "";
-                OracleCommand comm = new OracleCommand();
-                Open();
-                comm.Connection = this.conn as OracleConnection;
 
+                List<OracleParameter> pList = new List<OracleParameter>();
                 foreach (DictionaryEntry item in ht)
                 {
                     insertTableOption += item.Key.ToString() + ",";
                     insertTableValues += ":" + item.Key.ToString() + ",";
-                    comm.Parameters.Add(new OracleParameter(":" + item.Key, item.Value));
+                    pList.Add(new OracleParameter(":" + item.Key, item.Value));
                 }
                 insertTableOption = insertTableOption.TrimEnd(',');
                 insertTableValues = insertTableValues.TrimEnd(',');
-                comm.CommandText = string.Format(insertSql, tableName, insertTableOption, insertTableValues);
-                return comm.ExecuteNonQuery() > -1 ? true : false;
+                string insertSql = "insert into {0} ({1}) values ({2}) ";
+                insertSql = string.Format(insertSql, tableName, insertTableOption, insertTableValues);
+                return ExecuteSql(insertSql, pList.ToArray()) > -1 ? true : false;
             }
             catch (Exception e)
             {

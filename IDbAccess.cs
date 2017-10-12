@@ -63,6 +63,7 @@ namespace DBUtils
         #region 
         /// <summary>
         /// 向指定表增加一行数据
+        /// 需验证 各种数据类型都通过 关键在 date类型
         /// </summary>
         /// <param name="tableName">表名</param>
         /// <param name="ht">字段列值对</param>
