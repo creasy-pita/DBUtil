@@ -7,6 +7,9 @@ using System.Text;
 
 namespace DBUtil
 {
+    /// <summary>
+    /// 数据库访问类工厂
+    /// </summary>
     class IDbFactory
     {
         public static IDbAccess CreateIDb(string connStr, string dbType){
@@ -19,8 +22,6 @@ namespace DBUtil
                     conn = conn,
                     ConnectionStr = connStr,
                 };
-                
-
             }
             return dbAccess;
         }

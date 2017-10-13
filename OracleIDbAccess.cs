@@ -173,7 +173,84 @@ namespace DBUtils
         {
             throw new NotImplementedException();
         }
-        
+
+
+        #region
+        public DataTable GetDataTable(string sql)
+        {
+            DataSet ds = GetDataSet(sql);
+            if ( ds.Tables.Count > 0)
+            {
+                return ds.Tables[0];
+            }
+            return new DataTable();
+        }
+
+        public DataTable GetDataTable(string sql, IDataParameter[] paraArr)
+        {
+            DataSet ds = GetDataSet(sql,paraArr);
+            if ( ds.Tables.Count > 0)
+            {
+                return ds.Tables[0];
+            }
+            return new DataTable();
+        }
+
+        public DataSet GetDataSet(string sql)
+        {
+            try
+            {
+                Open();
+                
+                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
+                return ds;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+        }
+
+        public DataSet GetDataSet(string sql, IDataParameter[] paraArr)
+        {
+            try
+            {
+                Open();
+
+                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                adapter.SelectCommand.Parameters.AddRange(paraArr);
+
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
+                return ds;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+        }
+
+        #endregion
+
+
         public object GetFirstColumnAndRow(string sql)
         {
             try
@@ -198,23 +275,195 @@ namespace DBUtils
 
         }
 
+        public object GetFirstColumnAndRow(string sql, IDataParameter[] paraArr)
+        {
+            try
+            {
+                Open();
+                OracleCommand comm = new OracleCommand(sql);
+                comm.Connection = (OracleConnection)this.conn;
+                comm.Parameters.AddRange(paraArr);
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                return comm.ExecuteScalar();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+        }
+
+        public string GetFristColumnAndRowString(string sql, bool isReturnNull=false)
+        {
+            object obj = GetFirstColumnAndRow(sql);
+            if(obj==null)
+            {
+                return isReturnNull ? null : "";
+            }
+            return obj.ToString();
+        }
+
+        public string GetFristColumnAndRowString(string sql,IDataParameter[] paraArr, bool isReturnNull = false)
+        {
+            object obj = GetFirstColumnAndRow(sql,paraArr);
+            if (obj == null)
+            {
+                return isReturnNull ? null : "";
+            }
+            return obj.ToString();
+        }
+
+        #region
+
+        public bool UpdateData(string tableName, Hashtable ht, string filterStr)
+        {
+            try
+            {
+                string sql = "update {0} set {1} where 1=1 {2} ";
+                string updateSetSql = "";
+                List<OracleParameter> paras = new List<OracleParameter>();
+                foreach (DictionaryEntry item in ht)
+                {
+                    if (item.Value == null)
+                    {
+                        updateSetSql += " " + item.Key + "=null,";
+                    }
+                    else
+                    {
+                        updateSetSql += " " + item.Key + "=" + ":" + item.Key + ",";
+                    }
+                    paras.Add(new OracleParameter(item.Key.ToString(), item.Value));
+                }
+                updateSetSql = updateSetSql.TrimEnd(',');
+                sql = string.Format(sql, tableName, updateSetSql, filterStr);
+                return ExecuteSql(sql, paras.ToArray()) > 0 ? true : false;
+            }
+            catch (Exception e)
+            {
+                throw e;
+
+            }
+            finally
+            {
+
+            }
+        }
+        public bool UpdateData(string tableName, Hashtable ht, string filterStr, IDataParameter[] paraArr)
+        {
+            try
+            {
+                string sql = "update {0} set {1} where 1=1 {2} ";
+                string updateSetSql = "";
+                List<IDbDataParameter> paras = new List<IDbDataParameter>();
+                foreach (DictionaryEntry item in ht)
+                {
+                    if (item.Value == null)
+                    {
+                        updateSetSql += " " + item.Key + "=null,";
+                    }
+                    else
+                    {
+                        updateSetSql += " " + item.Key + "=" + ":" + item.Key + ",";
+                    }
+                    paras.Add(new OracleParameter(item.Key.ToString(), item.Value));
+                }
+                foreach (OracleParameter para in paraArr)
+                {
+                    if (!IsContiansParameter(paras ,para.ParameterName))
+                        paras.Add(new OracleParameter(para.ParameterName, para.Value));
+                }
+                updateSetSql = updateSetSql.TrimEnd(',');
+                sql = string.Format(sql, tableName, updateSetSql, filterStr);
+                return ExecuteSql(sql, paras.ToArray()) > 0 ? true : false;
+            }
+            catch (Exception e)
+            {
+                throw e;
+
+            }
+            finally
+            {
+
+            }
+        }
+
+        private bool IsContiansParameter(List<IDbDataParameter> paraArr, string parameterName)
+        {
+            foreach (IDbDataParameter item in paraArr)
+            {
+                if(item.ParameterName == parameterName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool UpdateOrAddData(string tableName, Hashtable ht,string filterStr)
+        {
+            if(GetFristColumnAndRowString( string.Format("select count(1) from {0} where 1=1 {1}", tableName, filterStr)) =="0")
+            {
+                return AddData(tableName, ht);
+            }
+            else
+            {
+                return UpdateData(tableName, ht, filterStr);
+            }
+        }
+
+        public bool UpdateOrAddData(string tableName, Hashtable ht, string filterStr, IDataParameter[] paraArr)
+        {
+            if (GetFristColumnAndRowString(string.Format("select count(1) from {0} where 1=1 {1}", tableName, filterStr), paraArr) == "0")
+            {
+                return AddData(tableName, ht);
+            }
+            else
+            {
+                return UpdateData(tableName, ht, filterStr, paraArr);
+            }
+        }
+        #endregion
+
+        #region
+
+        public bool DeleteRow(string tableName, string filterStr)
+        {
+            string sql = "delete from {0} where 1=1 {1}";
+            sql = string.Format(sql, tableName, filterStr);
+            return ExecuteSql(sql) > 0;
+        }
+
+        public bool DeleteRow(string tableName, string filterStr, IDbDataParameter[] paraArr)
+        {
+            string sql = "delete from {0} where 1=1 {1}";
+            sql = string.Format(sql, tableName, filterStr);
+            return ExecuteSql(sql, paraArr) > 0;
+        }
+        #endregion
 
         public bool AddData(string tableName, Hashtable ht)
         {
             try
             {
-                //DataTable dt = GetDataTable(string.Format(" select DATA_TYPE,COLUMN_NAME from user_tab_cols where table_name='{0}'", tableName.ToUpper()));
-                //Hashtable ht_pre = new Hashtable();
-                //if (dt.Rows.Count > 0)
-                //{
-                //    for (int i = 0; i < dt.Rows.Count; i++)
-                //    {
-                //        if (dt.Rows[i]["DATA_TYPE"].ToString().ToUpper() == "DATE")
-                //        {
-                //            ht_pre.Add(dt.Rows[i]["COLUMN_NAME"].ToString(), dt.Rows[i]["DATA_TYPE"].ToString());
-                //        }
-                //    }
-                //}
+                DataTable dt = GetDataTable(string.Format(" select DATA_TYPE,COLUMN_NAME from user_tab_cols where table_name='{0}'", tableName.ToUpper()));
+                Hashtable ht_pre = new Hashtable();
+                if (dt.Rows.Count > 0)
+                {
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        if (dt.Rows[i]["DATA_TYPE"].ToString().ToUpper().IndexOf("TIMESTAMP")>-1)
+                        {
+                            ht_pre.Add(dt.Rows[i]["COLUMN_NAME"].ToString(), dt.Rows[i]["DATA_TYPE"].ToString());
+                        }
+                    }
+                }
+
                 string insertTableOption = "";
                 string insertTableValues = "";
 
@@ -222,8 +471,29 @@ namespace DBUtils
                 foreach (DictionaryEntry item in ht)
                 {
                     insertTableOption += item.Key.ToString() + ",";
-                    insertTableValues += ":" + item.Key.ToString() + ",";
-                    pList.Add(new OracleParameter(":" + item.Key, item.Value));
+                    if (ht_pre.Contains(item.Key.ToString().ToUpper()))
+                    {
+                        if (item.Value == null)
+                        {
+                            insertTableValues += "null,";
+                        }
+                        else
+                        {
+                            insertTableValues += "to_date(:" + item.Key.ToString() + ", 'yyyy-MM-dd hh24:mi:ss ff'),";
+                        }
+                    }
+                    else
+                    {
+                        if (item.Value == null)
+                        {
+                            insertTableValues += "null,";
+                        }
+                        else
+                        {
+                            insertTableValues += ":" + item.Key.ToString() + ",";
+                        }
+                    }
+                    pList.Add(new OracleParameter(item.Key.ToString(), item.Value));
                 }
                 insertTableOption = insertTableOption.TrimEnd(',');
                 insertTableValues = insertTableValues.TrimEnd(',');
@@ -271,5 +541,31 @@ namespace DBUtils
                 Close();
             }
         }
+
+
+        public bool GetCount(string tableName, string filterStr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool GetCount(string tableName, string filterStr, IDataParameter[] paraArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public DataTable GetDataTableWithPage(string tableName,string filterStr, string orderStr,int pageSize, int pageIndex )
+        {
+            string sql = string.Format("select * from {0} where 1=1 {1} ", tableName,filterStr);
+            string pageSql = GetPageSql(sql,"order by "+ orderStr,pageSize,pageIndex);
+            return GetDataTable(pageSql);
+        }
+
+        public string GetPageSql(string sql, string orderStr, int pageSize, int pageIndex)
+        {
+            string pageSql = "select * from (select rownum rnum, inner.* from ({0} {1} ) inner ) outter where outter.rnum between {2} and {3}";
+            pageSql = string.Format(pageSql, sql, orderStr, pageSize *( pageIndex-1) + 1, pageSize * (pageIndex));
+            return pageSql;
+        }
+        
     }
 }
