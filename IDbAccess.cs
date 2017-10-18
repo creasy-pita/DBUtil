@@ -60,8 +60,33 @@ namespace DBUtils
         int ExecuteSql(string[] sqlArr);
 
         int ExecuteSql(string[] sqlArr, IDataParameter[] paramArr);
+        /// <summary>
+        /// 执行指定名称的存储过程
+        /// </summary>
+        /// <param name="procedureName">存储过程名称</param>
+        /// <param name="paramArr">存储过程参数 数组</param>
+        /// <returns></returns>
+        int ExecuteStoreProcedure(string procedureName, IDataParameter[] paramArr);
 
         #endregion
+
+        #region
+        /// <summary>
+        /// 指定查询sql 获取只读结果集
+        /// </summary>
+        /// <param name="sql">查询sql语句</param>
+        /// <returns></returns>
+        IDataReader GetDataReader(string sql);
+        /// <summary>
+        /// 指定查询sql 参数数组 获取只读结果集
+        /// </summary>
+        /// <param name="sql">查询sql语句</param>
+        /// <param name="paraArr">参数数组</param>
+        /// <returns></returns>
+        IDataReader GetDataReader(string sql, IDataParameter[] paraArr);
+
+        #endregion
+
 
         #region 获取dataset 或datatable
         DataTable GetDataTable(string sql);
@@ -72,6 +97,7 @@ namespace DBUtils
 
         DataSet GetDataSet(string sql, IDataParameter[] paraArr);
 
+        DataSet GetDatasetByStoreProcedure(string procedureName, IDataParameter[] paramArr);
         #endregion
 
         #region

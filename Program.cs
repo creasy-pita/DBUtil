@@ -23,14 +23,66 @@ namespace DBUtils
             //Console.WriteLine(db.GetFirstColumnAndRow(sql).ToString());
 
             
-            TestAddTable();
+            //TestAddTable();
             //TestAddData();
             //TestdeleteTable();
             //TestUpdateData();
             //TestGetDataTable();
             //TestUpdataOrAdd();
             //TestDeleteRow();
-            GetDataTableWithPage();
+            //GetDataTableWithPage();
+            try
+            {
+                //GetDatasetByStoreProcedure();
+                //updateAndAddTransaction();
+                GetDataReader();
+            }
+            catch(Exception e)
+            { Console.WriteLine(e.Message);
+            }
+        }
+
+        public static void GetDataReader()
+        {
+
+            IDbAccess db = IDbFactory.CreateIDb(connStr, dbType);
+            db.IsKeepConnect = true;
+            IDataReader datareader = db.GetDataReader("select * from templjqfortest");
+            while (datareader.Read())
+            {
+                Console.WriteLine(datareader.GetValue(0).ToString());
+                Console.WriteLine(datareader.GetValue(1).ToString());
+            }
+            datareader.Dispose();
+            db.Close();
+        }
+
+        public static void updateAndAddTransaction()
+        {
+                IDbAccess db = IDbFactory.CreateIDb(connStr, dbType);
+            try
+            {
+                db.IsTran = true;
+                db.BeginTransaction();
+                //add
+                string tableName = "templjqfortest";
+                Hashtable ht = new Hashtable();
+                ht.Add("name", "hello db11");
+                ht.Add("createtime", new DateTime(2011, 2, 1, 2, 2, 2, 11));
+                ht.Add("supertiem", null);
+
+                Console.WriteLine("" + db.AddData(tableName, ht));
+                //delete
+                string filterStr = "and name >='hello db7'";
+                Console.WriteLine("delete is " + db.DeleteRow(tableName, filterStr));
+                db.Commit();
+            }
+            catch(Exception e)
+            {
+                db.Rollback();
+                db.Close();
+            }
+
         }
 
         public static void GetDataTableWithPage()
@@ -43,6 +95,38 @@ namespace DBUtils
         {
             IDbAccess db = IDbFactory.CreateIDb(connStr, dbType);
             DataTable dt = db.GetDataTable("select * from templjqfortest");
+
+        }
+
+        public static void GetDatasetByStoreProcedure()
+        {
+            IDbAccess db = IDbFactory.CreateIDb(connStr, dbType);
+            //IDataParameter[] paraArr = new OracleParameter[3];
+            //paraArr[0] = new OracleParameter()
+            //{
+            //    ParameterName = "a",
+            //    Value=null,
+            //    Direction = ParameterDirection.ReturnValue
+            //};
+            //paraArr[1] = new OracleParameter()
+            //{
+            //    ParameterName = "b",
+            //    Value = 12
+            //};
+            //paraArr[2] = new OracleParameter()
+            //{
+            //    ParameterName = "c",
+            //    Value = 13
+            //};
+            IDataParameter[] paraArr = new OracleParameter[1];
+            paraArr[0] = new OracleParameter()
+            {
+                ParameterName = "EMPS",
+                Value = null,
+                Direction = ParameterDirection.Output,
+                OracleType = OracleType.Cursor
+            };
+            DataSet ds = db.GetDatasetByStoreProcedure("GetTableInfo", paraArr);
 
         }
 
@@ -82,7 +166,7 @@ namespace DBUtils
             {
                 Console.WriteLine("插入行:" +( db.ExecuteSql(sql)>0?true:false).ToString());
             }
-
+            
         }
 
         public static void TestdeleteTable()

@@ -70,6 +70,8 @@ namespace DBUtils
         {
             if (this.tran == null)
             {
+                if (conn.State != ConnectionState.Open)
+                    Open();
                 tran = conn.BeginTransaction();
                 IsTran = true;
             }
@@ -101,6 +103,7 @@ namespace DBUtils
             {
                 Open();
                 OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
                 return comm.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -174,7 +177,76 @@ namespace DBUtils
             throw new NotImplementedException();
         }
 
+        public int ExecuteStoreProcedure(string procedureName, IDataParameter[] paramArr)
+        {
+            try
+            {
+                Open();
+                OracleCommand cmd = new OracleCommand(procedureName,(OracleConnection)this.conn);
+                if (IsTran) cmd.Transaction = (OracleTransaction) this.tran;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddRange(paramArr);
+                return cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+        }
 
+        public IDataReader GetDataReader(string sql)
+        {
+            try
+            {
+                Open();
+                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                comm.CommandText = sql;
+                return comm.ExecuteReader();
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if(!IsTran && !IsKeepConnect)
+                { 
+                    Close();
+                }
+            }
+        }
+
+        public IDataReader GetDataReader(string sql, IDataParameter[] paraArr)
+        {
+            try
+            {
+                Open();
+                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                comm.CommandText = sql;
+                comm.Parameters.AddRange(paraArr);
+                return comm.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+
+        }
         #region
         public DataTable GetDataTable(string sql)
         {
@@ -248,6 +320,61 @@ namespace DBUtils
             }
         }
 
+        /// <summary>调用存储过程
+        /// 存储过程例子
+        ///     定义
+        /// CREATE OR REPLACE PROCEDURE GetTableInfo (
+        ///  EMPS OUT sys_refcursor) AS
+        ///BEGIN
+        ///  OPEN EMPS for SELECT TABLE_NAME from user_tables ;
+        ///END GetTableInfo;
+        ///     调用
+        ///declare 
+        ///    ee sys_refcursor;
+        ///    tab_name user_tables.table_name%Type;
+        ///begin
+        ///      GetTableInfo(ee);    
+        ///      /*open ee;*/
+        ///      loop
+        ///           exit when ee%notfound;
+        ///           fetch ee into tab_name;
+        ///           DBMS_OUTPUT.PUT_LINE(表名：||tab_name);
+        ///      end loop;
+        ///      close ee;
+        ///end;
+        /// </summary>
+        /// <param name="procedureName"></param>
+        /// <param name="paramArr"></param>
+        /// <returns></returns>
+        public DataSet GetDatasetByStoreProcedure(string procedureName, IDataParameter[] paramArr)
+        {
+            try
+            {
+                Open();
+                OracleCommand cmd = new OracleCommand(procedureName, (OracleConnection)this.conn);
+
+                if (IsTran) cmd.Transaction = (OracleTransaction)this.tran;
+                cmd.CommandType = CommandType.StoredProcedure;
+                
+                cmd.Parameters.AddRange(paramArr);
+                DataSet ds = new DataSet();
+                OracleDataAdapter adapter = new OracleDataAdapter(cmd);
+                adapter = new OracleDataAdapter(cmd);
+                adapter.Fill(ds);
+                return ds;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
+        }
         #endregion
 
 
