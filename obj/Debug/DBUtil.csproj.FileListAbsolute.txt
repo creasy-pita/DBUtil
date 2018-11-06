@@ -1,7 +1,11 @@
-E:\work\myproject\dotnet\DBUtil\bin\Debug\DBUtil.exe
+E:\work\myproject\dotnet\DBUtil\bin\Debug\DBUtil.dll
 E:\work\myproject\dotnet\DBUtil\bin\Debug\DBUtil.pdb
-E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.csprojResolveAssemblyReference.cache
 E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.Properties.Resources.resources
 E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.csproj.GenerateResource.Cache
-E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.exe
+E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.dll
 E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.pdb
+E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.csprojResolveAssemblyReference.cache
+E:\work\myproject\dotnet\DBUtil\obj\Debug\DBUtil.csproj.CoreCompileInputs.cache
+E:\work\myproject\dotnet\DBUtil\bin\Debug\MySql.Data.dll
+E:\work\myproject\dotnet\DBUtil\bin\Debug\System.Data.SQLite.dll
+E:\work\myproject\dotnet\DBUtil\bin\Debug\MySql.Data.xml

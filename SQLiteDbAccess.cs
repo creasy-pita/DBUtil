@@ -1,16 +1,15 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OracleClient;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DBUtil
 {
-    class OracleIDbAccess:IDbAccess
+    class SQLiteDbAccess : IDbAccess
     {
 
         public bool IsTran
@@ -102,8 +101,9 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                 
+                SQLiteCommand comm = new SQLiteCommand(sql, this.conn as SQLiteConnection);
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 return comm.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -124,8 +124,8 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                SQLiteCommand comm = new SQLiteCommand(sql, this.conn as SQLiteConnection);
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 Open();
                 comm.Parameters.AddRange(paramArr);
                 return comm.ExecuteNonQuery();
@@ -147,9 +147,9 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand();
-                comm.Connection = (OracleConnection)this.conn;
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                SQLiteCommand comm = new SQLiteCommand();
+                comm.Connection = (SQLiteConnection)this.conn;
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 Open();
                 int r = -1;
                 foreach (string sql in sqlArr)
@@ -182,8 +182,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand cmd = new OracleCommand(procedureName,(OracleConnection)this.conn);
-                if (IsTran) cmd.Transaction = (OracleTransaction) this.tran;
+                SQLiteCommand cmd = new SQLiteCommand(procedureName,(SQLiteConnection)this.conn);
+                if (IsTran) cmd.Transaction = (SQLiteTransaction) this.tran;
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddRange(paramArr);
                 return cmd.ExecuteNonQuery();
@@ -205,8 +205,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                SQLiteCommand comm = (SQLiteCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 comm.CommandText = sql;
                 return comm.ExecuteReader();
             }
@@ -228,8 +228,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                SQLiteCommand comm = (SQLiteCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 comm.CommandText = sql;
                 comm.Parameters.AddRange(paraArr);
                 return comm.ExecuteReader();
@@ -274,8 +274,8 @@ namespace DBUtil
             {
                 Open();
                 
-                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
-                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql, (SQLiteConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (SQLiteTransaction)this.tran;
                 DataSet ds = new DataSet();
                 adapter.Fill(ds);
                 return ds;
@@ -299,8 +299,8 @@ namespace DBUtil
             {
                 Open();
 
-                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
-                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql, (SQLiteConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (SQLiteTransaction)this.tran;
                 adapter.SelectCommand.Parameters.AddRange(paraArr);
 
                 DataSet ds = new DataSet();
@@ -351,15 +351,15 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand cmd = new OracleCommand(procedureName, (OracleConnection)this.conn);
+                SQLiteCommand cmd = new SQLiteCommand(procedureName, (SQLiteConnection)this.conn);
 
-                if (IsTran) cmd.Transaction = (OracleTransaction)this.tran;
+                if (IsTran) cmd.Transaction = (SQLiteTransaction)this.tran;
                 cmd.CommandType = CommandType.StoredProcedure;
                 
                 cmd.Parameters.AddRange(paramArr);
                 DataSet ds = new DataSet();
-                OracleDataAdapter adapter = new OracleDataAdapter(cmd);
-                adapter = new OracleDataAdapter(cmd);
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(cmd);
+                adapter = new SQLiteDataAdapter(cmd);
                 adapter.Fill(ds);
                 return ds;
             }
@@ -382,10 +382,10 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand(sql);
+                SQLiteCommand comm = new SQLiteCommand(sql);
                 Open();
-                comm.Connection = (OracleConnection)this.conn;
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                comm.Connection = (SQLiteConnection)this.conn;
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 return comm.ExecuteScalar();
             }
             catch (Exception e)
@@ -407,10 +407,10 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = new OracleCommand(sql);
-                comm.Connection = (OracleConnection)this.conn;
+                SQLiteCommand comm = new SQLiteCommand(sql);
+                comm.Connection = (SQLiteConnection)this.conn;
                 comm.Parameters.AddRange(paraArr);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
                 return comm.ExecuteScalar();
             }
             catch (Exception e)
@@ -454,7 +454,7 @@ namespace DBUtil
             {
                 string sql = "update {0} set {1} where 1=1 {2} ";
                 string updateSetSql = "";
-                List<OracleParameter> paras = new List<OracleParameter>();
+                List<SQLiteParameter> paras = new List<SQLiteParameter>();
                 foreach (DictionaryEntry item in ht)
                 {
                     if (item.Value == null)
@@ -465,7 +465,7 @@ namespace DBUtil
                     {
                         updateSetSql += " " + item.Key + "=" + ":" + item.Key + ",";
                     }
-                    paras.Add(new OracleParameter(item.Key.ToString(), item.Value));
+                    paras.Add(new SQLiteParameter(item.Key.ToString(), item.Value));
                 }
                 updateSetSql = updateSetSql.TrimEnd(',');
                 sql = string.Format(sql, tableName, updateSetSql, filterStr);
@@ -498,12 +498,12 @@ namespace DBUtil
                     {
                         updateSetSql += " " + item.Key + "=" + ":" + item.Key + ",";
                     }
-                    paras.Add(new OracleParameter(item.Key.ToString(), item.Value));
+                    paras.Add(new SQLiteParameter(item.Key.ToString(), item.Value));
                 }
-                foreach (OracleParameter para in paraArr)
+                foreach (SQLiteParameter para in paraArr)
                 {
                     if (!IsContiansParameter(paras ,para.ParameterName))
-                        paras.Add(new OracleParameter(para.ParameterName, para.Value));
+                        paras.Add(new SQLiteParameter(para.ParameterName, para.Value));
                 }
                 updateSetSql = updateSetSql.TrimEnd(',');
                 sql = string.Format(sql, tableName, updateSetSql, filterStr);
@@ -574,9 +574,60 @@ namespace DBUtil
         }
         #endregion
 
-        public bool ImportFromDatatable(DataTable dt)
+        public bool ImportFromDatatable(DataTable dataTable)
         {
-            throw new Exception("wait for implements");
+            if (null == dataTable || dataTable.Rows.Count <= 0)
+            {
+                return false; //"添加失败！DataTable暂无数据！";
+            }
+            if (string.IsNullOrEmpty(dataTable.TableName))
+            {
+                return false; //"添加失败！请先设置DataTable的名称！";
+            }
+            // 构建INSERT语句
+            try
+            {
+                Open();
+                SQLiteCommand comm = (SQLiteCommand)conn.CreateCommand();
+                if (IsTran) comm.Transaction = (SQLiteTransaction)this.tran;
+                StringBuilder nameBuilder = new StringBuilder(string.Format("INSERT INTO {0}(", dataTable.TableName));
+                foreach (DataColumn c in dataTable.Columns)
+                {
+                    nameBuilder.AppendFormat("{0},", c.ColumnName);
+                }
+                nameBuilder.Remove(nameBuilder.Length - 1, 1);
+                nameBuilder.Append(") VALUES(");
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    StringBuilder valueBuilder = new StringBuilder();
+                    foreach (DataColumn c in dataTable.Columns)
+                    {
+                        //if (c.DataType == typeof(DateTime))
+                        //{
+                        //    string val = ""
+                        //}
+                        string value = row[c.ColumnName].ToString();
+                        valueBuilder.AppendFormat("'{0}',", value);
+                    }
+                    valueBuilder.Remove(valueBuilder.Length - 1, 1);
+                    valueBuilder.Append(")");
+                    string sql = string.Format("{0}{1}", nameBuilder.ToString(), valueBuilder.ToString());
+                    comm.CommandText = sql;
+                    comm.ExecuteNonQuery();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
         }
 
         public bool AddData(string tableName, Hashtable ht)
@@ -599,7 +650,7 @@ namespace DBUtil
                 string insertTableOption = "";
                 string insertTableValues = "";
 
-                List<OracleParameter> pList = new List<OracleParameter>();
+                List<SQLiteParameter> pList = new List<SQLiteParameter>();
                 foreach (DictionaryEntry item in ht)
                 {
                     insertTableOption += item.Key.ToString() + ",";
@@ -625,7 +676,7 @@ namespace DBUtil
                             insertTableValues += ":" + item.Key.ToString() + ",";
                         }
                     }
-                    pList.Add(new OracleParameter(item.Key.ToString(), item.Value));
+                    pList.Add(new SQLiteParameter(item.Key.ToString(), item.Value));
                 }
                 insertTableOption = insertTableOption.TrimEnd(',');
                 insertTableValues = insertTableValues.TrimEnd(',');
@@ -648,7 +699,7 @@ namespace DBUtil
 
         }
 
-        /// <summary>判断表是否存在,注意 oracle 对象名采用大写判断
+        /// <summary>判断表是否存在
         /// </summary>
         /// <param name="tableName">表名</param>
         /// <returns>返回表是否存在</returns>

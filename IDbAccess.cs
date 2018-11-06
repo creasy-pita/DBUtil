@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Collections;
 
-namespace DBUtils
+namespace DBUtil
 {
     /// <summary>
     /// 数据库访问接口类
     /// 关键验证点： 事务 （多个事务同时测试；事务中包含增删改 查 ；每个方法能否正常执行；操作方法考虑各种数据）,
     ///             Null 值的处理 
     /// </summary>
-    interface IDbAccess:IDisposable
+    public interface IDbAccess:IDisposable
     {
 
         bool IsTran { get; set; }
@@ -113,6 +113,13 @@ namespace DBUtils
         /// <returns></returns>
         string GetFristColumnAndRowString(string sql, IDataParameter[] paraArr, bool isReturnNull = false);
         #endregion
+
+        #region
+
+        bool ImportFromDatatable(DataTable dt);
+
+        #endregion
+
 
         #region
         /// <summary>

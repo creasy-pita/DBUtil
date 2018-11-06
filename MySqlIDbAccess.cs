@@ -7,10 +7,11 @@ using System.Data.OracleClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 
 namespace DBUtil
 {
-    class OracleIDbAccess:IDbAccess
+    class MySqlIDbAccess : IDbAccess
     {
 
         public bool IsTran
@@ -102,8 +103,9 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                 
+                MySqlCommand comm = new MySqlCommand(sql, this.conn as MySqlConnection);
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 return comm.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -124,8 +126,8 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand(sql, this.conn as OracleConnection);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                MySqlCommand comm = new MySqlCommand(sql, this.conn as MySqlConnection);
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 Open();
                 comm.Parameters.AddRange(paramArr);
                 return comm.ExecuteNonQuery();
@@ -147,9 +149,9 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand();
-                comm.Connection = (OracleConnection)this.conn;
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                MySqlCommand comm = new MySqlCommand();
+                comm.Connection = (MySqlConnection)this.conn;
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 Open();
                 int r = -1;
                 foreach (string sql in sqlArr)
@@ -182,8 +184,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand cmd = new OracleCommand(procedureName,(OracleConnection)this.conn);
-                if (IsTran) cmd.Transaction = (OracleTransaction) this.tran;
+                MySqlCommand cmd = new MySqlCommand(procedureName,(MySqlConnection)this.conn);
+                if (IsTran) cmd.Transaction = (MySqlTransaction) this.tran;
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddRange(paramArr);
                 return cmd.ExecuteNonQuery();
@@ -205,8 +207,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                MySqlCommand comm = (MySqlCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 comm.CommandText = sql;
                 return comm.ExecuteReader();
             }
@@ -228,8 +230,8 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = (OracleCommand)this.conn.CreateCommand();
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                MySqlCommand comm = (MySqlCommand)this.conn.CreateCommand();
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 comm.CommandText = sql;
                 comm.Parameters.AddRange(paraArr);
                 return comm.ExecuteReader();
@@ -274,8 +276,8 @@ namespace DBUtil
             {
                 Open();
                 
-                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
-                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                MySqlDataAdapter adapter = new MySqlDataAdapter(sql, (MySqlConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (MySqlTransaction)this.tran;
                 DataSet ds = new DataSet();
                 adapter.Fill(ds);
                 return ds;
@@ -299,8 +301,8 @@ namespace DBUtil
             {
                 Open();
 
-                OracleDataAdapter adapter = new OracleDataAdapter(sql, (OracleConnection)this.conn);
-                if (IsTran) adapter.SelectCommand.Transaction = (OracleTransaction)this.tran;
+                MySqlDataAdapter adapter = new MySqlDataAdapter(sql, (MySqlConnection)this.conn);
+                if (IsTran) adapter.SelectCommand.Transaction = (MySqlTransaction)this.tran;
                 adapter.SelectCommand.Parameters.AddRange(paraArr);
 
                 DataSet ds = new DataSet();
@@ -351,15 +353,15 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand cmd = new OracleCommand(procedureName, (OracleConnection)this.conn);
+                MySqlCommand cmd = new MySqlCommand(procedureName, (MySqlConnection)this.conn);
 
-                if (IsTran) cmd.Transaction = (OracleTransaction)this.tran;
+                if (IsTran) cmd.Transaction = (MySqlTransaction)this.tran;
                 cmd.CommandType = CommandType.StoredProcedure;
                 
                 cmd.Parameters.AddRange(paramArr);
                 DataSet ds = new DataSet();
-                OracleDataAdapter adapter = new OracleDataAdapter(cmd);
-                adapter = new OracleDataAdapter(cmd);
+                MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
+                adapter = new MySqlDataAdapter(cmd);
                 adapter.Fill(ds);
                 return ds;
             }
@@ -382,10 +384,10 @@ namespace DBUtil
         {
             try
             {
-                OracleCommand comm = new OracleCommand(sql);
+                MySqlCommand comm = new MySqlCommand(sql);
                 Open();
-                comm.Connection = (OracleConnection)this.conn;
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                comm.Connection = (MySqlConnection)this.conn;
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 return comm.ExecuteScalar();
             }
             catch (Exception e)
@@ -407,10 +409,10 @@ namespace DBUtil
             try
             {
                 Open();
-                OracleCommand comm = new OracleCommand(sql);
-                comm.Connection = (OracleConnection)this.conn;
+                MySqlCommand comm = new MySqlCommand(sql);
+                comm.Connection = (MySqlConnection)this.conn;
                 comm.Parameters.AddRange(paraArr);
-                if (IsTran) comm.Transaction = (OracleTransaction)this.tran;
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
                 return comm.ExecuteScalar();
             }
             catch (Exception e)
@@ -574,9 +576,60 @@ namespace DBUtil
         }
         #endregion
 
-        public bool ImportFromDatatable(DataTable dt)
+        public bool ImportFromDatatable(DataTable dataTable)
         {
-            throw new Exception("wait for implements");
+            if (null == dataTable || dataTable.Rows.Count <= 0)
+            {
+                return false; //"添加失败！DataTable暂无数据！";
+            }
+            if (string.IsNullOrEmpty(dataTable.TableName))
+            {
+                return false; //"添加失败！请先设置DataTable的名称！";
+            }
+            // 构建INSERT语句
+            try
+            {
+                Open();
+                MySqlCommand comm = (MySqlCommand)conn.CreateCommand();
+                if (IsTran) comm.Transaction = (MySqlTransaction)this.tran;
+                StringBuilder nameBuilder = new StringBuilder(string.Format("INSERT INTO {0}(", dataTable.TableName));
+                foreach (DataColumn c in dataTable.Columns)
+                {
+                    nameBuilder.AppendFormat("{0},", c.ColumnName);
+                }
+                nameBuilder.Remove(nameBuilder.Length - 1, 1);
+                nameBuilder.Append(") VALUES(");
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    StringBuilder valueBuilder = new StringBuilder();
+                    foreach (DataColumn c in dataTable.Columns)
+                    {
+                        //if (c.DataType == typeof(DateTime))
+                        //{
+                        //    string val = ""
+                        //}
+                        string value = row[c.ColumnName].ToString();
+                        valueBuilder.AppendFormat("'{0}',", value);
+                    }
+                    valueBuilder.Remove(valueBuilder.Length - 1, 1);
+                    valueBuilder.Append(")");
+                    string sql = string.Format("{0}{1}", nameBuilder.ToString(), valueBuilder.ToString());
+                    comm.CommandText = sql;
+                    comm.ExecuteNonQuery();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (!IsTran && !IsKeepConnect)
+                {
+                    Close();
+                }
+            }
         }
 
         public bool AddData(string tableName, Hashtable ht)
